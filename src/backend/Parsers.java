@@ -1,16 +1,16 @@
 package backend;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
-import technology.tabula.ObjectExtractor;
-import technology.tabula.Page;
-import technology.tabula.Table;
-import technology.tabula.TextChunk;
-import technology.tabula.detectors.SpreadsheetDetectionAlgorithm;
+import technology.tabula.*;
 import technology.tabula.extractors.BasicExtractionAlgorithm;
 import technology.tabula.extractors.SpreadsheetExtractionAlgorithm;
+import technology.tabula.writers.CSVWriter;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -132,7 +132,7 @@ public class Parsers {
         return employeeName;
     }
 
-    public Table parseTop(String path, int pageNum) throws IOException {
+    private Table parseTop(String path, int pageNum) throws IOException {
         Table tableNew = new Table(this.bea);
         float top = INCH_POINT + 20.0f;
         float bottom = top + 150.0f;
@@ -216,10 +216,11 @@ public class Parsers {
 
             }
         }
+        tableNew.add(TextChunk.EMPTY, tableNew.getRowCount(), 0);
         return tableNew;
     }
 
-    public Table parseMiddle(String path, int pageNum) throws IOException {
+    private Table parseMiddle(String path, int pageNum) throws IOException {
         Table tableNew = new Table(this.bea);
         float top = this.stopPosition;
         float bottom = top + MAX_INCREMENT;
@@ -233,6 +234,7 @@ public class Parsers {
                 TextChunk chunk = (TextChunk) table.getCell(endRow, i);
                 String text = chunk.getText();
                 if (text.equals("Review History")) {
+                    this.stopPosition = chunk.y;
                     bottom -= MAX_INCREMENT;
                     break loopbreak;
                 }
@@ -241,15 +243,77 @@ public class Parsers {
         }
         Page page = getAreaFromPage(path, pageNum, top, LEFT, bottom, RIGHT);
         Table table = bea.extract(page).get(0);
+        table.add(TextChunk.EMPTY, table.getRowCount(), 0);
         return table;
     }
 
-    public List<Table> parseBottom(String path, int pageNum) throws IOException {
-        SpreadsheetDetectionAlgorithm spd = new SpreadsheetDetectionAlgorithm();
+    private Table extractHeader(String path, int pageNum, SpreadsheetExtractionAlgorithm sea, Table table, float starting) throws IOException {
+        Table tableNew = new Table(sea);
+        Page page = getAreaFromPage(path, pageNum, starting - 50.0f, LEFT, starting, RIGHT);
+        Table row = this.bea.extract(page).get(0);
+        TextChunk header = (TextChunk) row.getCell(0, 0);
+        int col;
+        int colCount = table.getColCount();
+        if ((colCount % 2) == 0) {
+            col = Math.floorDiv(table.getColCount() - 1, 2);
+        } else {
+            col = Math.floorDiv(table.getColCount(), 2);
+        }
+        int blankColNum = 0;
+        boolean blankCol = false;
+        tableNew.add(header, 0, col);
+        for (int i = 0; i < table.getRowCount(); i++) {
+            for (int j = 0; j < table.getColCount(); j++) {
+                Cell chunk = (Cell) table.getCell(i, j);
+                if (blankCol && j == blankColNum) {
+                    continue;
+                }
+                if (blankCol && j > blankColNum) {
+                    tableNew.add(chunk, i + 1, j - 1);
+                    continue;
+                }
+                if (chunk.getText().isBlank() && i == 0) {
+                    TextChunk oldHeader = (TextChunk) tableNew.getCell(0, col);
+                    TextChunk newHeader = new TextChunk(header.getTextElements());
+                    tableNew.add(newHeader, 0, col - 1);
+                    oldHeader.getTextElements().clear();
+                    blankColNum = j;
+                    blankCol = true;
+                    continue;
+                }
+                tableNew.add(chunk, i + 1, j);
+
+            }
+        }
+        tableNew.add(TextChunk.EMPTY, tableNew.getRowCount(), 0);
+        return tableNew;
+    }
+
+    private List<Table> parseBottom(String path, int pageNum) throws IOException {
         SpreadsheetExtractionAlgorithm sea = new SpreadsheetExtractionAlgorithm();
         Page page = getPage(path, pageNum);
-        List<Table> tables = sea.extract(page);
+        List<Table> tablesExtracted = sea.extract(page);
+        List<Table> tables = new LinkedList<>();
+        for (int i = 0; i < tablesExtracted.size(); i++) {
+            Table table = tablesExtracted.get(i);
+            Table tableNew = extractHeader(path, pageNum, sea, table, table.y);
+            tables.add(tableNew);
+        }
         return tables;
 
     }
+
+    public void parse(Path source, int pageNum, List<Table> tables, CSVWriter csvWriter, FileWriter fw) throws IOException {
+        StringBuilder sb = new StringBuilder();
+        Table top = parseTop(source.toString(), pageNum);
+        Table middle = parseMiddle(source.toString(), pageNum);
+        List<Table> bottom = parseBottom(source.toString(), pageNum);
+        tables.add(top);
+        tables.add(middle);
+        tables.addAll(bottom);
+        csvWriter.write(sb, tables);
+        fw.write(sb.toString());
+        fw.close();
+    }
+
 }
