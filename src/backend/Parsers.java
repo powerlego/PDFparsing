@@ -22,16 +22,34 @@ public class Parsers {
     private static float LEFT = INCH_POINT;
     private static float RIGHT = pageX - INCH_POINT;
     private static float pageY = 1224.0f;
+    private static float MAX_INCREMENT = 20.0f;
     private float stopPosition;
     private String employeeName;
     private BasicExtractionAlgorithm bea;
     private boolean commentFlag;
-    private static float MAX_INCREMENT = 20.0f;
 
     public Parsers() {
         this.bea = new BasicExtractionAlgorithm();
         this.stopPosition = 0.0f;
         this.commentFlag = false;
+    }
+
+    private static Page getAreaFromPage(String path, int page, float top, float left, float bottom, float right) throws IOException {
+        return getPage(path, page).getArea(top, left, bottom, right);
+    }
+
+    private static Page getPage(String path, int pageNumber) throws IOException {
+        ObjectExtractor oe = null;
+        try {
+            PDDocument document = PDDocument
+                    .load(new File(path));
+            oe = new ObjectExtractor(document);
+            Page page = oe.extract(pageNumber);
+            return page;
+        } finally {
+            if (oe != null)
+                oe.close();
+        }
     }
 
     private int processComments(int currRow, int currCol, int row2col, Table table, Table tableNew) {
@@ -86,8 +104,6 @@ public class Parsers {
             sb.append(split[1]);
             sb.append(" ");
             sb.append(split[0]);
-            sb.append(" ");
-            sb.append(idSplit[1]);
             formattedName = sb.toString();
         } else {
             String[] split = name.split(", ");
@@ -100,24 +116,6 @@ public class Parsers {
         formattedName = formattedName.toLowerCase();
         formattedName = formattedName.replaceAll(" ", "_");
         return formattedName;
-    }
-
-    private static Page getAreaFromPage(String path, int page, float top, float left, float bottom, float right) throws IOException {
-        return getPage(path, page).getArea(top, left, bottom, right);
-    }
-
-    private static Page getPage(String path, int pageNumber) throws IOException {
-        ObjectExtractor oe = null;
-        try {
-            PDDocument document = PDDocument
-                    .load(new File(path));
-            oe = new ObjectExtractor(document);
-            Page page = oe.extract(pageNumber);
-            return page;
-        } finally {
-            if (oe != null)
-                oe.close();
-        }
     }
 
     public BasicExtractionAlgorithm getBea() {
@@ -164,6 +162,7 @@ public class Parsers {
                 String text = container.getText();
                 if (text.contains("Comments") && !(text.contentEquals("Comments:"))) {
                     commentFlag = true;
+                    this.stopPosition = container.y;
                     break outerloop;
                 } else if (text.contains("Description") || text.contains("Previous") || text.contains("Approved") || text.contains("Proposed")) {
                     this.stopPosition = container.y;
@@ -189,13 +188,36 @@ public class Parsers {
             }
         }
         if (commentFlag) {
-            top = bottom - 40.0f;
-            bottom = top + 150.0f;
+            top = stopPosition;
+            bottom = top + MAX_INCREMENT;
+            loopbreak:
+            while (true) {
+                page = getAreaFromPage(path, pageNum, top, LEFT, bottom, RIGHT);
+                table = bea.extract(page).get(0);
+                //System.out.println(bottom);
+                for (int i = 0; i < table.getRowCount(); i++) {
+                    for (int j = 0; j < table.getRowCount(); j++) {
+                        TextChunk chunk = (TextChunk) table.getCell(i, j);
+                        String text = chunk.getText();
+                        if (text.contains("Comments")) {
+                            break;
+                        }
+                        if (text.contains("Description") || text.contains("Previous") || text.contains("Approved") || text.contains("Proposed")) {
+                            this.stopPosition = chunk.y;
+                            bottom -= MAX_INCREMENT;
+                            break loopbreak;
+                        }
+                    }
+                }
+                bottom += MAX_INCREMENT;
+            }
             page = getAreaFromPage(path, pageNum, top, LEFT, bottom, RIGHT);
             table = bea.extract(page).get(0);
+            //System.out.println("Im here");
             loop:
             for (int i = 0; i < table.getRowCount(); i++) {
                 for (int j = 0; j < table.getColCount(); j++) {
+
                     TextChunk container = (TextChunk) table.getCell(i, j);
                     String text = container.getText();
                     if (text.contains(":")) {
@@ -204,9 +226,6 @@ public class Parsers {
                         if (text.contains("Comments:")) {
                             row2col = processComments(i, j, row2col, table, tableNew);
                         }
-                    } else if (text.contains("Description") || text.contains("Previous") || text.contains("Approved") || text.contains("Proposed")) {
-                        this.stopPosition = container.y;
-                        break loop;
                     } else if (!(text.isBlank() || text.isEmpty())) {
                         tableNew.add(container, 1, row2col);
                         row2col++;
@@ -294,8 +313,7 @@ public class Parsers {
         Page page = getPage(path, pageNum);
         List<Table> tablesExtracted = sea.extract(page);
         List<Table> tables = new LinkedList<>();
-        for (int i = 0; i < tablesExtracted.size(); i++) {
-            Table table = tablesExtracted.get(i);
+        for (Table table : tablesExtracted) {
             Table tableNew = extractHeader(path, pageNum, sea, table, table.y);
             tables.add(tableNew);
         }

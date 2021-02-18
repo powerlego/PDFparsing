@@ -1,21 +1,0 @@
-Employee Name:,Rehire/Hire Date:,Effective Date:,Created By:,Approved By:,Current Status:,PAF Type :,PAF Reason:,Manager Comments:,Employee Comments:
-"PERDOMO, ERIK N (0469)","07-17-20175 months, 4 days",12/21/17,CARL JARVIS,CHERIE TURMAN,Final Approved,Change Employment Status of Employee,Voluntary Termination,Erik left work at lunch time and never returned. He did not,
-"",,,,,,,,"notify his supervisor, but told other warehouse employee that",
-"",,,,,,,,he quit.,
-"",,,,,,,,,
-Description,Previous,Proposed
-Employee Status,ACTIVE,TERMINATED
-Termination Type,,Voluntary - no call no show
-Termination Reason,,No Change
-"",,
-"",,Review History,,
-Reviewer Name,Action,Action Time,Send Back Notes,Approval Notes
-CHERIE DEVORE,Final Approved,12/22/2017 02:39:57 PM,,
-"",,,,
-"",,Transaction Change History,,,
-"ChangeType","FieldChanged",Old Value,New Value,Changed By,Time Changed
-"ProposedField","TerminationType","Voluntary with notice ofResignation","Voluntary - no call noshow","FAITHMCGREGORY","12/22/2017 11:38:11AM"
-"ProposedField",Effective Date,2017-12-18,2017-12-20,"FAITHMCGREGORY","12/22/2017 11:38:11AM"
-"ProposedField",Submit To,faithmcg,cturman,"FAITHMCGREGORY","12/22/2017 11:38:11AM"
-"ProposedField",Effective Date,2017-12-20,2017-12-21,"CHERIEDEVORE","12/22/2017 02:39:34PM"
-"",,,,,

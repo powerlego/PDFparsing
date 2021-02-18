@@ -1,4 +1,5 @@
 import backend.Parsers;
+import backend.Utils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import technology.tabula.Table;
 import technology.tabula.writers.CSVWriter;
@@ -18,18 +19,22 @@ import java.util.Scanner;
 public class parser {
 
     public static void main(String[] args) throws IOException {
-        Path source;
-        Path output;
+        Utils utils = new Utils();
+        Path source = Paths.get("print.pdf");
+        ;
+        Path output = Paths.get("./employees");
+        ;
         FileWriter fw = new FileWriter("src/out.csv");
         Scanner scanner = new Scanner(System.in);
         Parsers parsers = new Parsers();
         CSVWriter csvWriter = new CSVWriter();
         List<Table> tables = new LinkedList<>();
         boolean debug = false;
-        if (args[0].equals("debug")) {
-            source = Paths.get("print.pdf");
-            output = Paths.get("./employees");
-            debug = true;
+
+        if (args.length != 0) {
+            if (args[0].equals("debug")) {
+                debug = true;
+            }
         } else {
             String input;
             while (true) {
@@ -46,6 +51,9 @@ public class parser {
             input = scanner.nextLine();
             output = Paths.get(input.concat("/employees"));
         }
+        if (output.toFile().exists()) {
+            utils.deleteDirectory(output.toFile());
+        }
         Files.createDirectories(output);
 
         PDDocument document = PDDocument.load(source.toFile());
@@ -59,7 +67,16 @@ public class parser {
             for (int i = 1; i < numPages + 1; i++) {
                 tables = new LinkedList<>();
                 String employeeName = parsers.processEmployeeName(source.toString(), i);
+                System.out.print("Employee: " + employeeName + ", Page ");
+                System.out.println(i);
                 Path outputFilePath = output.resolve(employeeName + ".csv");
+                if (outputFilePath.toFile().exists()) {
+                    int dupNum = 1;
+                    while (outputFilePath.toFile().exists()) {
+                        outputFilePath = output.resolve(employeeName + "_" + dupNum + ".csv");
+                        dupNum++;
+                    }
+                }
                 fw = new FileWriter(outputFilePath.toFile());
                 parsers.parse(source, i, tables, csvWriter, fw);
             }
