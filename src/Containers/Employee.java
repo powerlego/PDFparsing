@@ -18,20 +18,8 @@ public class Employee {
         this.code = code;
     }
 
-    public String getName() {
-        return name;
-    }
-
     public void addPAF(PAF paf) {
         this.profile.add(paf);
-    }
-
-    public String getCode() {
-        return code;
-    }
-
-    public List<PAF> getProfile() {
-        return profile;
     }
 
     @Override
@@ -42,5 +30,17 @@ public class Employee {
         } else {
             return false;
         }
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public List<PAF> getProfile() {
+        return profile;
     }
 }
