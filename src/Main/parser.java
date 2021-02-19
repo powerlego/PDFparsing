@@ -24,10 +24,21 @@ import java.util.Scanner;
 import java.util.TreeMap;
 
 /**
+ * The main class
+ *
  * @author Nicholas Curl
  */
 public class parser {
 
+    /**
+     * The main function
+     *
+     * @param args Command line arguments
+     *
+     * @throws IOException            Exception for invalid file
+     * @throws ParseException         Exception for invalid date parsing
+     * @throws CsvValidationException Exception from reading a csv file
+     */
     public static void main(String[] args) throws IOException, ParseException, CsvValidationException {
         Utils utils = new Utils();
         Path source = Paths.get("print.pdf");
@@ -41,12 +52,12 @@ public class parser {
         List<PAF> pafs = new LinkedList<>();
         TreeMap<String, Employee> employees = new TreeMap<>();
         boolean debug = false;
-
+        //checks the command line argument
         if (args.length != 0) {
             if (args[0].equals("debug")) {
                 debug = true;
             }
-        } else {
+        } else {  //if not in debug mode run normally
             String input;
             while (true) {
                 System.out.println("Location of pdf to parse (relative or absolute path): ");
@@ -118,7 +129,7 @@ public class parser {
             System.out.println("Enter Page Number:");
             int pageNum = Integer.parseInt(scanner.nextLine());
             parsers.parse(source, pageNum, csvWriter, fw, pafp, report);
-        } else {
+        } else { //main execution for non-debug mode
             for (int i = 1; i < numPages + 1; i++) {
                 String employeeName = parsers.processEmployeeName(source.toString(), i);
                 System.out.print("Employee: " + employeeName + ", Page ");

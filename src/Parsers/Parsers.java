@@ -18,6 +18,7 @@ import java.util.List;
 
 /**
  * Class that parses a pdf to extract tables
+ *
  * @author Nicholas Curl
  */
 public class Parsers {
@@ -71,15 +72,15 @@ public class Parsers {
     /**
      * Extracts the headers from a ruled table
      *
-     * @param path     path to pdf file input
-     * @param pageNum  page number
-     * @param sea      spreadsheet extraction algorithm instance
-     * @param table    table that is missing the header
-     * @param starting the starting position to search for the header
+     * @param path     Path to pdf file input
+     * @param pageNum  Page number
+     * @param sea      Spreadsheet extraction algorithm instance
+     * @param table    Table that is missing the header
+     * @param starting The starting position to search for the header
      *
-     * @return table with the added header
+     * @return Table with the added header
      *
-     * @throws IOException exception for invalid file
+     * @throws IOException Exception for invalid file
      */
     private Table extractHeader(String path, int pageNum, SpreadsheetExtractionAlgorithm sea, Table table, float starting) throws IOException {
         Table tableNew = new Table(sea);
@@ -128,30 +129,33 @@ public class Parsers {
 
     /**
      * Parses the pdf
-     * @param source pdf input
-     * @param pageNum pdf page number
-     * @param csvWriter CSVWriter instance
-     * @param fw FileWriter instance
+     *
+     * @param source        Pdf input
+     * @param pageNum       Pdf page number
+     * @param csvWriter     CSVWriter instance
+     * @param fw            FileWriter instance
      * @param pafProcessing PAFProcessing instance
-     * @param report IDReport Instance
+     * @param report        IDReport Instance
+     *
      * @return PAF instance with necessary data
-     * @throws IOException exception for invalid file
-     * @throws ParseException exception for invalid date
+     *
+     * @throws IOException    Exception for invalid file
+     * @throws ParseException Exception for invalid date
      */
     public PAF parse(Path source, int pageNum, CSVWriter csvWriter, FileWriter fw, PAFProcessing pafProcessing, IDReport report) throws IOException, ParseException {
         StringBuilder sb = new StringBuilder();
-        Table top = parseTop(source.toString(), pageNum);
-        Table middle = parseMiddle(source.toString(), pageNum);
-        List<Table> bottom = parseBottom(source.toString(), pageNum);
+        Table top = parseTop(source.toString(), pageNum); //gets the top table
+        Table middle = parseMiddle(source.toString(), pageNum); //gets the middle table
+        List<Table> bottom = parseBottom(source.toString(), pageNum); //gets the bottom tables
         List<Table> tables = new LinkedList<>();
         tables.add(top);
         tables.add(middle);
         tables.addAll(bottom);
-        csvWriter.write(sb, tables);
-        fw.write(sb.toString());
+        csvWriter.write(sb, tables); //converts tables to csv
+        fw.write(sb.toString()); //writes the converted string to file
         fw.close();
-        PAF paf = new PAF(top, middle, bottom);
-        pafProcessing.processPAF(paf);
+        PAF paf = new PAF(top, middle, bottom); //create a new PAF
+        pafProcessing.processPAF(paf); //process PAF
         pafProcessing.transactionIDProcessing(paf, report);
         if (pafProcessing.hasDocs(paf)) {
             paf.setHasDocs(true);
@@ -161,10 +165,13 @@ public class Parsers {
 
     /**
      * Parses the bottom tables of the pdf
-     * @param path path of the pdf input
-     * @param pageNum the pdf page number
+     *
+     * @param path    Path of the pdf input
+     * @param pageNum The pdf page number
+     *
      * @return List of tables that were parsed
-     * @throws IOException exception for invalid file
+     *
+     * @throws IOException Exception for invalid file
      */
     private List<Table> parseBottom(String path, int pageNum) throws IOException {
         SpreadsheetExtractionAlgorithm sea = new SpreadsheetExtractionAlgorithm();
@@ -181,17 +188,19 @@ public class Parsers {
 
     /**
      * Parses the middle table of the pdf
-     * @param path path of the pdf input
-     * @param pageNum the pdf page number
+     *
+     * @param path    Path of the pdf input
+     * @param pageNum The pdf page number
+     *
      * @return The table extracted from the middle of the pdf
-     * @throws IOException exception for invalid file
+     *
+     * @throws IOException Exception for invalid file
      */
     private Table parseMiddle(String path, int pageNum) throws IOException {
-        Table tableNew = new Table(this.bea);
         float top = this.stopPosition;
         float bottom = top + MAX_INCREMENT;
         loopbreak:
-        while (true) {
+        while (true) { //searches for the specified term to know when to stop the extraction rectangle
             Page page = getAreaFromPage(path, pageNum, top, LEFT, bottom, RIGHT);
             Table table = bea.extract(page).get(0);
             int endRow = table.getRowCount() - 1;
@@ -214,10 +223,13 @@ public class Parsers {
 
     /**
      * Parses the top table of the pdf
-     * @param path path of the input pdf
-     * @param pageNum the pdf page number
+     *
+     * @param path    Path of the input pdf
+     * @param pageNum The pdf page number
+     *
      * @return Table extracted from the top in a two row system
-     * @throws IOException exception for invalid file
+     *
+     * @throws IOException Exception for invalid file
      */
     private Table parseTop(String path, int pageNum) throws IOException {
         Table tableNew = new Table(this.bea);
@@ -244,6 +256,7 @@ public class Parsers {
         bottom = top + 100.0f;
         page = getAreaFromPage(path, pageNum, top, LEFT, bottom, RIGHT);
         table = bea.extract(page).get(0);
+        //processing of comments
         outerloop:
         for (int i = 0; i < table.getRowCount(); i++) {
             for (int j = 0; j < table.getColCount(); j++) {
@@ -276,11 +289,11 @@ public class Parsers {
                 }
             }
         }
-        if (commentFlag) {
+        if (commentFlag) { //if the comments are Manager and Employee comments or regular comments
             top = stopPosition;
             bottom = top + MAX_INCREMENT;
             loopbreak:
-            while (true) {
+            while (true) { //search for the specified terms to know where to extract the data
                 page = getAreaFromPage(path, pageNum, top, LEFT, bottom, RIGHT);
                 table = bea.extract(page).get(0);
                 for (int i = 0; i < table.getRowCount(); i++) {
@@ -327,11 +340,13 @@ public class Parsers {
 
     /**
      * Helper function to extract comments from the pdf
-     * @param currRow the row that the comment string was found
-     * @param currCol the column that the comment string was found
-     * @param row2col the column position in the new table
-     * @param table the old table with data
-     * @param tableNew the new table that is being filled
+     *
+     * @param currRow  The row that the comment string was found
+     * @param currCol  The column that the comment string was found
+     * @param row2col  The column position in the new table
+     * @param table    The old table with data
+     * @param tableNew The new table that is being filled
+     *
      * @return the column number after processing the comments
      */
     private int processComments(int currRow, int currCol, int row2col, Table table, Table tableNew) {
@@ -350,10 +365,13 @@ public class Parsers {
 
     /**
      * Helper function that extracts the employee name from the pdf
-     * @param path path to the input pdf
-     * @param pageNum the pdf page number
-     * @return the employee name formatted with first name first
-     * @throws IOException exception for invalid file
+     *
+     * @param path    Path to the input pdf
+     * @param pageNum The pdf page number
+     *
+     * @return The employee name formatted with first name first
+     *
+     * @throws IOException Exception for invalid file
      */
     public String processEmployeeName(String path, int pageNum) throws IOException {
         float top = INCH_POINT + 20.0f;
@@ -362,7 +380,7 @@ public class Parsers {
         int col;
         String formattedName;
         loopbreak:
-        while (true) {
+        while (true) { //looks for the employee name header
             Page page = getAreaFromPage(path, pageNum, top, LEFT, bottom, RIGHT);
             Table table = bea.extract(page).get(0);
             int endRow = table.getRowCount() - 1;
@@ -382,6 +400,7 @@ public class Parsers {
         Table table = bea.extract(page).get(0);
         TextChunk chunk = (TextChunk) table.getCell(row + 1, col);
         String name = chunk.getText();
+        //formats the string
         if (name.contains("(")) {
             String[] idSplit = name.split(" \\(");
             String[] split = idSplit[0].split(", ");
@@ -397,14 +416,17 @@ public class Parsers {
 
     /**
      * Helper function that gets the area of the page to extract the table from
-     * @param path path for the input pdf
-     * @param page the pdf page number
-     * @param top top position the rectangle in pts
-     * @param left left position of the rectangle
-     * @param bottom bottom position of the rectangle
-     * @param right right position of the rectangle
+     *
+     * @param path   Path for the input pdf
+     * @param page   The pdf page number
+     * @param top    Top position the rectangle in pts
+     * @param left   Left position of the rectangle
+     * @param bottom Bottom position of the rectangle
+     * @param right  Right position of the rectangle
+     *
      * @return Area containing data
-     * @throws IOException exception for invalid file
+     *
+     * @throws IOException Exception for invalid file
      */
     private static Page getAreaFromPage(String path, int page, float top, float left, float bottom, float right) throws IOException {
         return getPage(path, page).getArea(top, left, bottom, right);
@@ -412,10 +434,13 @@ public class Parsers {
 
     /**
      * Helper function that gets the specified pdf page
-     * @param path path for the input pdf
-     * @param pageNumber the pdf page number
-     * @return the specified page
-     * @throws IOException exception for invalid file
+     *
+     * @param path       Path for the input pdf
+     * @param pageNumber The pdf page number
+     *
+     * @return The specified page
+     *
+     * @throws IOException Exception for invalid file
      */
     private static Page getPage(String path, int pageNumber) throws IOException {
         ObjectExtractor oe = null;

@@ -8,14 +8,26 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
+ * Class of utility functions
+ *
  * @author Nicholas Curl
  */
 public class Utils {
 
+    /**
+     * Constructor for utility functions
+     */
     public Utils() {
 
     }
 
+    /**
+     * Deletes the specified directory
+     *
+     * @param directoryToBeDeleted The directory to be deleted
+     *
+     * @return True if successfully deleted false otherwise
+     */
     public boolean deleteDirectory(File directoryToBeDeleted) {
         File[] allContents = directoryToBeDeleted.listFiles();
         if (allContents != null) {
@@ -26,6 +38,14 @@ public class Utils {
         return directoryToBeDeleted.delete();
     }
 
+    /**
+     * Find the reports containing the report name at the specified location
+     *
+     * @param reportName     The report name to search for
+     * @param reportLocation The location to search the report in
+     *
+     * @return List of reports containing the specified name
+     */
     public List<File> findReports(String reportName, File reportLocation) {
         List<File> reports = new LinkedList<>();
         File[] list = reportLocation.listFiles();
@@ -42,6 +62,13 @@ public class Utils {
         return reports;
     }
 
+    /**
+     * Format an employee name
+     *
+     * @param name The employee name to format
+     *
+     * @return The formatted employee name
+     */
     public String formatName(String name) {
         String[] split = name.split(", ");
         String formattedName = split[1] + " " + split[0];
@@ -50,6 +77,13 @@ public class Utils {
         return formattedName;
     }
 
+    /**
+     * Formats string to use in comparisons
+     *
+     * @param string The string to format
+     *
+     * @return The formatted string
+     */
     public String formatString(String string) {
         if (string.contains("\r")) {
             string = string.replaceAll("\r", " ");
@@ -59,6 +93,15 @@ public class Utils {
         return string;
     }
 
+    /**
+     * Converts the date string into Date instance
+     *
+     * @param date The date string
+     *
+     * @return The converted date string
+     *
+     * @throws ParseException Exception for invalid date parsing
+     */
     public Date stringToDate(String date) throws ParseException {
         return new SimpleDateFormat("MM/dd/yyyy").parse(date);
     }

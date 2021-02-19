@@ -12,17 +12,43 @@ import java.text.ParseException;
 import java.util.*;
 
 /**
+ * The class that parses the PAF transaction ID report
+ *
  * @author Nicholas Curl
  */
 public class IDReportProcessing {
 
+    /**
+     * The records loaded from the CSV file
+     */
     private List<List<String>> records;
+    /**
+     * Utils instance
+     */
     private Utils utils = new Utils();
 
+    /**
+     * Constructor for processing the report
+     *
+     * @param idFile The file of the report
+     *
+     * @throws IOException            Exception for invalid file
+     * @throws CsvValidationException Exception from reading a csv file
+     */
     public IDReportProcessing(File idFile) throws IOException, CsvValidationException {
         this.records = processRecords(idFile);
     }
 
+    /**
+     * Loads the CSV file of the report
+     *
+     * @param idPath The file of the report
+     *
+     * @return The 2D list containing the loaded CSV
+     *
+     * @throws IOException            Exception for invalid file
+     * @throws CsvValidationException Exception from reading a csv file
+     */
     private List<List<String>> processRecords(File idPath) throws IOException, CsvValidationException {
         List<List<String>> tempRecords = new ArrayList<>();
         try (CSVReader csvReader = new CSVReader(new FileReader(idPath));) {
@@ -34,6 +60,13 @@ public class IDReportProcessing {
         return tempRecords;
     }
 
+    /**
+     * Separates the loaded report into its individual columns
+     *
+     * @return The report containing the separated columns
+     *
+     * @throws ParseException Exception for invalid date parsing
+     */
     public IDReport processReport() throws ParseException {
         List<String> employeeNames = new LinkedList<>();
         TreeMap<String, String> employeeCodes = new TreeMap<>();
@@ -50,11 +83,11 @@ public class IDReportProcessing {
         int pafTypeCol = 0;
         for (int i = 0; i < headerRow.size(); i++) {
             String header = headerRow.get(i);
-            if (header.contains("_")) {
+            if (header.contains("_")) {//replace _ with spaces
                 header = header.replaceAll("_", " ");
             }
-            header = header.toLowerCase();
-            switch (header) {
+            header = header.toLowerCase(); //makes everything lowercase
+            switch (header) { //switch to specify which column of the report contains what
                 case "employee name":
                     employeeCol = i;
                     break;
@@ -78,7 +111,7 @@ public class IDReportProcessing {
             }
         }
         int entries = 0;
-        for (int i = 1; i < records.size(); i++) {
+        for (int i = 1; i < records.size(); i++) { //separates the data into specified columns
             List<String> row = records.get(i);
             employeeNames.add(utils.formatName(row.get(employeeCol).strip()));
             employeeCodes.putIfAbsent(utils.formatName(row.get(employeeCol).strip()), row.get(employeeCodeCol).strip());
