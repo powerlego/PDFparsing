@@ -8,8 +8,6 @@ import com.gargoylesoftware.htmlunit.SilentCssErrorHandler;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.javascript.SilentJavaScriptErrorListener;
 
-import java.net.CookieHandler;
-import java.net.CookieManager;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -22,22 +20,14 @@ public class Scraper {
     private final Utils utils = new Utils();
 
     public Scraper() {
-        CookieHandler.setDefault(new CookieManager());
     }
 
     public static void main(String[] args) throws Exception {
         Scraper scraper = new Scraper();
-        //checks the command line argument
-        if (args.length != 0) {
-            if (args[0].equals("debug")) {
-                scraper.scrape(true);
-            }
-        } else {
-            scraper.scrape(false);
-        }
+        scraper.scrape();
     }
 
-    public void scrape(boolean debug) throws Exception {
+    public void scrape() throws Exception {
         Employees employees = new Employees();
         WebClient client = new WebClient();
         client.getOptions().setJavaScriptEnabled(true);
@@ -45,9 +35,10 @@ public class Scraper {
         client.getOptions().setPrintContentOnFailingStatusCode(false);
         client.setCssErrorHandler(new SilentCssErrorHandler());
         client.setJavaScriptErrorListener(new SilentJavaScriptErrorListener());
-        LoginProcessing loginProcessing = new LoginProcessing(debug);
+        LoginProcessing loginProcessing = new LoginProcessing();
         DashboardProcessing dashboardProcessing = new DashboardProcessing();
-        Path output = Paths.get("./employees");
+        Path output = Paths.get("Y:/HR/Paycom Data Scrape/PAFs/employees");
+
         if (output.toFile().exists()) {
             utils.deleteDirectory(output.toFile());
         }
@@ -55,7 +46,6 @@ public class Scraper {
 
         loginProcessing.login(client);
         dashboardProcessing.finalDashboard(client, output, employees);
-        //dashboardProcessing.finalDashboard(response);
     }
 
 }

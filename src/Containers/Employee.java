@@ -14,16 +14,22 @@ public class Employee {
     /**
      * The employee name
      */
-    private String name;
+    private final String name;
     /**
      * The PAFs associated to the employee
      */
-    private List<PAF> profile;
+    private final List<PAF> profile;
     /**
      * The employee code
      */
-    private String code;
+    private final String code;
+    /**
+     * The employee photo
+     */
     private File employeePhoto;
+    /**
+     * The employee's file location
+     */
     private Path employeeFileLocation;
 
     /**
@@ -74,6 +80,42 @@ public class Employee {
     }
 
     /**
+     * Get the employee file location
+     *
+     * @return The employee file location
+     */
+    public Path getEmployeeFileLocation() {
+        return employeeFileLocation;
+    }
+
+    /**
+     * Sets the employee file location
+     *
+     * @param employeeFileLocation The path to the employee file location
+     */
+    public void setEmployeeFileLocation(Path employeeFileLocation) {
+        this.employeeFileLocation = employeeFileLocation;
+    }
+
+    /**
+     * Get the employee photo
+     *
+     * @return The employee photo
+     */
+    public File getEmployeePhoto() {
+        return employeePhoto;
+    }
+
+    /**
+     * Sets the employee photo
+     *
+     * @param employeePhoto File of the employee photo
+     */
+    public void setEmployeePhoto(File employeePhoto) {
+        this.employeePhoto = employeePhoto;
+    }
+
+    /**
      * Get the employee name
      *
      * @return The employee name
@@ -89,21 +131,5 @@ public class Employee {
      */
     public List<PAF> getProfile() {
         return profile;
-    }
-
-    public Path getEmployeeFileLocation() {
-        return employeeFileLocation;
-    }
-
-    public void setEmployeeFileLocation(Path employeeFileLocation) {
-        this.employeeFileLocation = employeeFileLocation;
-    }
-
-    public File getEmployeePhoto() {
-        return employeePhoto;
-    }
-
-    public void setEmployeePhoto(File employeePhoto) {
-        this.employeePhoto = employeePhoto;
     }
 }
