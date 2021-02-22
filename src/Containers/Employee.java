@@ -1,5 +1,7 @@
 package Containers;
 
+import java.io.File;
+import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -21,6 +23,8 @@ public class Employee {
      * The employee code
      */
     private String code;
+    private File employeePhoto;
+    private Path employeeFileLocation;
 
     /**
      * The constructor for the employee
@@ -85,5 +89,21 @@ public class Employee {
      */
     public List<PAF> getProfile() {
         return profile;
+    }
+
+    public Path getEmployeeFileLocation() {
+        return employeeFileLocation;
+    }
+
+    public void setEmployeeFileLocation(Path employeeFileLocation) {
+        this.employeeFileLocation = employeeFileLocation;
+    }
+
+    public File getEmployeePhoto() {
+        return employeePhoto;
+    }
+
+    public void setEmployeePhoto(File employeePhoto) {
+        this.employeePhoto = employeePhoto;
     }
 }

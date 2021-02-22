@@ -7,6 +7,7 @@ import technology.tabula.*;
 import technology.tabula.extractors.BasicExtractionAlgorithm;
 import technology.tabula.extractors.SpreadsheetExtractionAlgorithm;
 import technology.tabula.writers.CSVWriter;
+import Utils.Utils;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -22,6 +23,7 @@ import java.util.List;
  * @author Nicholas Curl
  */
 public class Parsers {
+    Utils utils = new Utils();
     /**
      * 1 inch in pts
      */
@@ -401,17 +403,7 @@ public class Parsers {
         TextChunk chunk = (TextChunk) table.getCell(row + 1, col);
         String name = chunk.getText();
         //formats the string
-        if (name.contains("(")) {
-            String[] idSplit = name.split(" \\(");
-            String[] split = idSplit[0].split(", ");
-            formattedName = split[1] + " " + split[0];
-        } else {
-            String[] split = name.split(", ");
-            formattedName = split[1] + " " + split[0];
-        }
-        formattedName = formattedName.toLowerCase();
-        formattedName = formattedName.replaceAll(" ", "_");
-        return formattedName;
+        return utils.formatName(name);
     }
 
     /**
