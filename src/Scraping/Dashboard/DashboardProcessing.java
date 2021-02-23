@@ -135,6 +135,7 @@ public class DashboardProcessing {
             HtmlImage employeePhotoContainer = (HtmlImage) pafPage.getByXPath("//div[contains(@class, 'cardPhoto')]//img").get(0);
             Path employeeFolder = addEmployee(employees, employeeName, employeeCode, saveLocation);
             File employeePhoto = employeeFolder.resolve("employee_photo.jpg").toFile();
+            //saves the employee photo if it exists
             if (!employeePhoto.exists()) {
                 employeePhotoContainer.saveAs(employeePhoto);
                 employees.setEmployeePhoto(employeeCode, employeePhoto);
@@ -270,21 +271,39 @@ public class DashboardProcessing {
         return employeeFolder;
     }
 
+    /**
+     * Saves supporting documents and creates the necessary PAF instance
+     *
+     * @param transactionID  The PAF transaction ID
+     * @param tableTop       The top data table
+     * @param tableMiddle    The middle data table
+     * @param employeeFolder The folder of the employee
+     * @param elements       The supporting document elements
+     *
+     * @return The PAF Instance created
+     *
+     * @throws IOException if an IO problem occurs
+     */
     private PAF saveFiles(int transactionID, List<List<String>> tableTop, List<List<String>> tableMiddle, Path employeeFolder, List<HtmlAnchor> elements) throws IOException {
         PAF paf;
+        //checks to see if there are any supporting documents
         if (elements.isEmpty()) {
             paf = new PAF(transactionID, tableTop, tableMiddle);
         } else {
             List<File> supportingDocs = new LinkedList<>();
+            //Creates a supporting documents folder inside the employee's folder
             Path supportDocs = employeeFolder.resolve("supporting_docs/");
             Files.createDirectories(supportDocs);
+            //Iterates through all of the elements containing the supporting documents
             for (HtmlAnchor downloadAnchor : elements) {
                 UnexpectedPage page = downloadAnchor.click();
                 WebResponse response = page.getWebResponse();
+                //Grab the file name
                 String[] headerSplit = response.getResponseHeaderValue("Content-Disposition").split(";");
                 String temp = headerSplit[1].strip();
                 String[] splitTemp = temp.split("\"");
                 String filename = splitTemp[1];
+                //Download and save file
                 File downloadFile = supportDocs.resolve(filename).toFile();
                 InputStream contentAsStream = response.getContentAsStream();
                 FileOutputStream out = new FileOutputStream(downloadFile);
@@ -297,13 +316,31 @@ public class DashboardProcessing {
         return paf;
     }
 
+    /**
+     * Writes the CSV of the PAF
+     *
+     * @param tableTop       The top data table
+     * @param tableMiddle    The middle data table
+     * @param employeeFolder The folder of the employee to save the PAF
+     * @param transactionID  The PAF transaction ID
+     *
+     * @throws IOException if an IO problem occurs
+     */
     private void writePAFCSV(List<List<String>> tableTop, List<List<String>> tableMiddle, Path employeeFolder, int transactionID) throws IOException {
+        //Creates a folder for the PAFs if it does not exist
         Path pafFolder = employeeFolder.resolve("pafs/");
         Files.createDirectories(pafFolder);
         Path pafFile = pafFolder.resolve(transactionID + ".csv");
         utils.writeCSV(pafFile, tableTop, tableMiddle);
     }
 
+    /**
+     * Finds the fields found in the top data table
+     *
+     * @param field       The field to search for
+     * @param searchTable The table to search for the field
+     * @param destTable   The table to store the found field and its data
+     */
     private void findTopField(String field, List<List<String>> searchTable, List<List<String>> destTable) {
         loopbreak:
         for (List<String> row : searchTable) {
@@ -316,6 +353,12 @@ public class DashboardProcessing {
         }
     }
 
+    /**
+     * Gets and stores the name of the person who final approved the PAF
+     *
+     * @param searchTable The table to search in
+     * @param destTable   The table to store the name
+     */
     private void getFinalApprovedBy(List<List<String>> searchTable, List<List<String>> destTable) {
         List<String> approvedBy = new LinkedList<>();
         approvedBy.add("Final Approved By");
@@ -332,9 +375,18 @@ public class DashboardProcessing {
         destTable.add(approvedBy);
     }
 
+    /**
+     * Processes the search table into its individual table components
+     *
+     * @param searchTable The search table
+     * @param tableTop    The top data table
+     * @param tableMiddle The middle data table
+     */
     private void processTable(List<List<String>> searchTable, List<List<String>> tableTop, List<List<String>> tableMiddle) {
+        //Get the bounds of data extraction
         int supportDocRowStart = findSupportingDocRowStart(searchTable);
         int startingRow = findStartingRow(searchTable);
+        //Iterate through the cells within the bounds
         for (int i = startingRow; i < supportDocRowStart; i++) {
             List<String> row = searchTable.get(i);
             if (row.get(0).equalsIgnoreCase("Blank")) {
@@ -375,6 +427,13 @@ public class DashboardProcessing {
         }
     }
 
+    /**
+     * Find the employee name in the search table
+     *
+     * @param searchTable The table to search for the employee name
+     *
+     * @return The employee name
+     */
     private String findEmployeeName(List<List<String>> searchTable) {
         String name = "";
         for (List<String> row : searchTable) {
@@ -387,6 +446,15 @@ public class DashboardProcessing {
         return name;
     }
 
+    /**
+     * Get the elements containing the supporting documents
+     *
+     * @param table       The HtmlTable to grab the HtmlAnchors
+     * @param searchTable The table to search
+     *
+     * @return The list of HtmlAnchors that contain the supporting documents. Empty list if no supporting documents are
+     *         found.
+     */
     private List<HtmlAnchor> getSupportingDocs(HtmlTable table, List<List<String>> searchTable) {
         List<HtmlAnchor> files = new LinkedList<>();
         int supportDocRowStart = findSupportingDocRowStart(searchTable) + 1;
@@ -403,6 +471,13 @@ public class DashboardProcessing {
         return files;
     }
 
+    /**
+     * Find the starting row of the supporting documents
+     *
+     * @param searchTable The table to search in
+     *
+     * @return The row that specifies the beginning of the supporting documentation
+     */
     private int findSupportingDocRowStart(List<List<String>> searchTable) {
         int rowNum = -1;
         loopbreak:
@@ -418,6 +493,13 @@ public class DashboardProcessing {
         return rowNum;
     }
 
+    /**
+     * Find the starting row of the table to extract from
+     *
+     * @param searchTable The table to search in
+     *
+     * @return The row that specifies the beginning of the extraction table
+     */
     private int findStartingRow(List<List<String>> searchTable) {
         int rowNum = -1;
         loopbreak:
@@ -433,6 +515,13 @@ public class DashboardProcessing {
         return rowNum;
     }
 
+    /**
+     * Finds the end row for the supporting documentation
+     *
+     * @param searchTable The table to search in
+     *
+     * @return The row that specifies the end of the supporting documentation
+     */
     private int findSupportDocEndRow(List<List<String>> searchTable) {
         int rowNum = -1;
         loopbreak:
