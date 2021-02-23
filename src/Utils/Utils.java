@@ -16,6 +16,9 @@ import java.util.List;
  */
 public class Utils {
 
+    private static final String OS = System.getProperty("os.name").toLowerCase();
+    public static boolean IS_WINDOWS = (OS.contains("win"));
+
     /**
      * Constructor for utility functions
      */
@@ -123,5 +126,14 @@ public class Utils {
             tableNew.add(rowArray);
         }
         return tableNew;
+    }
+
+    public void clearScreen() throws IOException, InterruptedException {
+        if (IS_WINDOWS) {
+            new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+        } else {
+            System.out.print("\033[H\033[2J");
+            System.out.flush();
+        }
     }
 }

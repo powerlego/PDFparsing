@@ -28,6 +28,7 @@ public class Scraper {
     }
 
     public void scrape() throws Exception {
+        utils.clearScreen();
         Employees employees = new Employees();
         WebClient client = new WebClient();
         client.getOptions().setJavaScriptEnabled(true);
@@ -37,13 +38,11 @@ public class Scraper {
         client.setJavaScriptErrorListener(new SilentJavaScriptErrorListener());
         LoginProcessing loginProcessing = new LoginProcessing();
         DashboardProcessing dashboardProcessing = new DashboardProcessing();
-        Path output = Paths.get("Y:/HR/Paycom Data Scrape/PAFs/employees");
-
+        Path output = Paths.get("C:/HR/Paycom Data Scrape/PAFs/employees");
         if (output.toFile().exists()) {
             utils.deleteDirectory(output.toFile());
         }
         Files.createDirectories(output);
-
         loginProcessing.login(client);
         dashboardProcessing.finalDashboard(client, output, employees);
     }

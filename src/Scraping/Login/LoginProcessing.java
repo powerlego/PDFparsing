@@ -1,5 +1,6 @@
 package Scraping.Login;
 
+import Utils.Utils;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.*;
 
@@ -10,6 +11,8 @@ import java.util.Scanner;
  * @author Nicholas Curl
  */
 public class LoginProcessing {
+
+    private final Utils utils = new Utils();
 
     public LoginProcessing() {
     }
@@ -30,6 +33,7 @@ public class LoginProcessing {
         username.type(scanner.next());
         System.out.print("Password: ");
         password.type(scanner.next());
+        utils.clearScreen();
         HtmlPage securityPage = login.click();
         HtmlForm securityForm = securityPage.getForms().get(0);
         HtmlPasswordInput fistSecurityQuestion = securityForm.getInputByName("firstSecurityQuestion");
@@ -43,6 +47,7 @@ public class LoginProcessing {
         System.out.println(secondSecurityQuestion.getAttribute("aria-label").strip());
         String secondAnswer = scanner.next();
         secondSecurityQuestion.type(secondAnswer);
+        utils.clearScreen();
         HtmlPage homePage = continueButton.click();
     }
 
