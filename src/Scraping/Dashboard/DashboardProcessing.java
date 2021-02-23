@@ -48,7 +48,7 @@ public class DashboardProcessing {
      * @param saveLocation The location to save the processed PAFs
      * @param employees    The map of the employees
      *
-     * @throws IOException if an IO problem occurs
+     * @throws IOException If an IO problem occurs
      */
     public void finalDashboard(WebClient client, Path saveLocation, Employees employees) throws IOException {
         //navigate to the PAF dashboard
@@ -91,7 +91,7 @@ public class DashboardProcessing {
      *
      * @return The HtmlPage after the filter is selected
      *
-     * @throws IOException if an IO problem occurs
+     * @throws IOException If an IO problem occurs
      */
     private HtmlPage selectFilter(WebClient client, HtmlPage pafDashboard) throws IOException {
         //checks to see if the PAF filter is present
@@ -122,7 +122,7 @@ public class DashboardProcessing {
      * @param saveLocation The path location to save the parsed PAF
      * @param employees    The map of employees
      *
-     * @throws IOException if an IO problem occurs
+     * @throws IOException If an IO problem occurs
      */
     private void processPAFPage(WebClient client, HtmlPage pafPage, Path saveLocation, Employees employees) throws IOException {
         client.waitForBackgroundJavaScript(2000);
@@ -218,7 +218,7 @@ public class DashboardProcessing {
      *
      * @return The elements that match the PAF filter
      *
-     * @throws IOException if an IO problem occurs
+     * @throws IOException If an IO problem occurs
      */
     private List<HtmlListItem> navigateFilters(WebClient client, HtmlPage pafDashboard) throws IOException {
         HtmlDivision div = (HtmlDivision) pafDashboard.getByXPath("//div[contains(@class, 'largeSelectFilterDropDown employeeTypeFilter')]").get(0);
@@ -236,7 +236,7 @@ public class DashboardProcessing {
      *
      * @return The HtmlPage after copying the filter
      *
-     * @throws IOException if an IO problem occurs
+     * @throws IOException If an IO problem occurs
      */
     private HtmlPage copyFilter(WebClient client) throws IOException {
         return client.getPage("https://www.paycomonline.net/v4/cl/web.php/filter/advanced/copy/183575");
@@ -252,7 +252,7 @@ public class DashboardProcessing {
      *
      * @return The folder unique to the employee
      *
-     * @throws IOException if an IO problem occurs
+     * @throws IOException If an IO problem occurs
      */
     private Path addEmployee(Employees employees, String employeeName, String employeeCode, Path saveLocation) throws IOException {
         //adds the employee to the map of employees
@@ -282,7 +282,7 @@ public class DashboardProcessing {
      *
      * @return The PAF Instance created
      *
-     * @throws IOException if an IO problem occurs
+     * @throws IOException If an IO problem occurs
      */
     private PAF saveFiles(int transactionID, List<List<String>> tableTop, List<List<String>> tableMiddle, Path employeeFolder, List<HtmlAnchor> elements) throws IOException {
         PAF paf;
@@ -324,7 +324,7 @@ public class DashboardProcessing {
      * @param employeeFolder The folder of the employee to save the PAF
      * @param transactionID  The PAF transaction ID
      *
-     * @throws IOException if an IO problem occurs
+     * @throws IOException If an IO problem occurs
      */
     private void writePAFCSV(List<List<String>> tableTop, List<List<String>> tableMiddle, Path employeeFolder, int transactionID) throws IOException {
         //Creates a folder for the PAFs if it does not exist
